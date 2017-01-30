@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>ConvNetJS demo</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <meta content="width=device-width,initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"/>
+  <meta name="apple-mobile-web-app-capable" content="no" />
+  <meta name="format-detection" content="telephone=no,email=no,adress=no"/>
+
+<script src="convnet-min.js"></script>
+
+<script type="text/javascript">
+	var net;
+	var layer_defs = [];
+	var trainer;
+	var list = [0, 1, 2, 3];
+	var listVol;
+	function start() {
+		// 初始化网络
+		net = new convnetjs.Net();
+
+		// 初始化网络层
+		// 输入层  type:input是输入层 三个维度是 (x y depth)
+		layer_defs.push({type:'input', out_sx:1, out_sy:1, out_depth:2});
+		// 链接层  type:fc是链接层 num_neurons:神经元数目 activation:网络层间传递信息激活函数 relu:默认的常规激活函数
+		layer_defs.push({type:'fc', num_neurons:20, activation:'relu'});
+		layer_defs.push({type:'fc', num_neurons:20, activation:'relu'});
+		// 输出层 type:softmax是输出层 softmax:限制了输出的概率总和为1 num_classes:概率分类数量
+		layer_defs.push({type:'softmax', num_classes: list.length});
+		// 把各层添加到网络中
+		net.makeLayers(layer_defs);
+
+		// 新建数值列表对象
+	    listVol = new convnetjs.Vol(list);
+
+	    // 建立训练对象  
+	    // learning_rate:网络训练速率(速率越高训练越快但网络容易混乱) 
+	    // l2_decay:衰退率(衰退率越高网络不容易出现混乱崩毁但学习效果成果会有所下降)
+	    trainer = new convnetjs.Trainer(net, {learning_rate:0.01, l2_decay:0.001});
+
+	    // 输出数值在网络中的权重比例
+	    output();
+	}
+
+	// 输入数值下标，调整数值在网络中的权重比例，训练网络
+	function trainNet(position) {
+		trainer.train(listVol, position);
+		output();
+	}
+
+	// 输出数值在网络中的权重比例
+	function output() {
+		var probability = net.forward(listVol);
+		for(var i = 0; i < list.length; i++) {
+			var tmp = probability.w[i] * 100;
+			document.getElementById('percent' + i).innerHTML = tmp + '%';
+		}
+	}
+
+</script>
+
+</head>
+<body onload="start()">
+  <table cellpadding="0" cellspacing="0" border="0" width="100%">
+  	<tr>
+  		<td align="center" valign="middle" height="30">数值</td>
+  		<td align="center" valign="middle" height="30">操作</td>
+  		<td align="center" valign="middle" height="30">数值在网络中的权重比例</td>
+  	</tr>
+  	<tr>
+  		<td align="center" valign="middle" height="30">0</td>
+  		<td align="center" valign="middle" height="30">
+  			<input type="button" value="点击训练" onclick="trainNet(0)" />
+  		</td>
+  		<td align="center" valign="middle" height="30" id="percent0"></td>
+  	</tr>
+  	<tr>
+  		<td align="center" valign="middle" height="30">1</td>
+  		<td align="center" valign="middle" height="30">
+  			<input type="button" value="点击训练" onclick="trainNet(1)" />
+  		</td>
+  		<td align="center" valign="middle" height="30" id="percent1"></td>
+  	</tr>
+  	<tr>
+  		<td align="center" valign="middle" height="30">2</td>
+  		<td align="center" valign="middle" height="30">
+  			<input type="button" value="点击训练" onclick="trainNet(2)" />
+  		</td>
+  		<td align="center" valign="middle" height="30" id="percent2"></td>
+  	</tr>
+  	<tr>
+  		<td align="center" valign="middle" height="30">3</td>
+  		<td align="center" valign="middle" height="30">
+  			<input type="button" value="点击训练" onclick="trainNet(3)" />
+  		</td>
+  		<td align="center" valign="middle" height="30" id="percent3"></td>
+  	</tr>
+  </table>
+</body>
+</html>
+
+
+
